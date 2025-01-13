@@ -1,0 +1,117 @@
+﻿@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Home page";
+}
+
+<div id="vueDivId">
+    <div class="w-50 mx-auto bg-warning mt-4 p-3">
+        <div class="text-center">
+            <h1 class="">Welcome to JWT Simple project</h1>
+        </div>
+    </div>
+
+    <div class="w-50 mx-auto bg-secondary mt-4 p-3">
+        <div class="text-center">
+            <a class="btn btn-primary" href="swagger" target="_blank">Go to Swagger to check Api</a>
+        </div>
+    </div>
+
+    <div class="w-50 mx-auto bg-secondary mt-4 p-3 text-white">
+        <div class="text-center">
+            <h3 v-if="IsLogin">Status : You are Logged in</h3>
+            <h3 v-if="!IsLogin">Status : You are Logged out</h3>
+        </div>
+    </div>
+
+    <div class="w-50 mx-auto bg-secondary mt-4 p-3 text-white">
+        <div>
+            <h4 class="text-center">Login</h4>
+            <div>
+                <label>User Name : </label>
+                <input class="form-control" type="text" v-model="LoginVm.UserName" />
+                <label>Password : </label>
+                <input class="form-control" type="password" v-model="LoginVm.Password" />
+
+                <div class="row mt-3">
+                    <div class="col-6">
+                        <button class="btn btn-primary w-100" :disabled="IsLogin" v-on:click="LoginAction">Login</button>
+                    </div>
+                    <div class="col-6">
+                        <button class="btn btn-danger w-100" :disabled="!IsLogin" v-on:click="LogoutAction">Logout</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="w-50 mx-auto bg-secondary mt-4 p-3 text-white">
+        <div class="text-center">
+            <h4 class="text-center">Check the User Api with Admin Role</h4>
+            <button class="btn btn-primary w-100" v-on:click="GetData">Get Data</button>
+            <div class="text-start mt-3">
+                <label>Result : </label>
+                <textarea class="form-control" rows="10" readonly v-model="DataResponse"></textarea>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    const vueDiv = {
+        data() {
+            return {
+                LoginVm: {
+                    UserName: '',
+                    Password: '',
+                },
+                IsLogin: false,
+                DataResponse: '',
+            }
+        },
+        mounted() {
+            this.UserLoggedInOrNot();
+        },
+        methods: {
+            GetData() {
+                axios.get("/Account/SystemUser").
+                    then(res => {
+                        this.DataResponse = JSON.stringify(res.data);
+                    });
+            },//----
+            LogoutAction(){
+                axios.post("/Account/Logout").
+                    then(res => {
+                        this.UserLoggedInOrNot();
+                    });
+            },//----
+            LoginAction() {
+                axios.post("/Account/Login", this.LoginVm).
+                    then(res => {
+                        this.UserLoggedInOrNot();
+                    });
+            },//----
+            UserLoggedInOrNot() {
+                try {
+                    axios.get("/Account/UserLoggedInOrNot")
+                        .then(res => {
+                            if (res.status === 200) {
+                                this.IsLogin = true;
+                            } else {
+                                this.IsLogin = false;
+                            }
+                        })
+                        .catch(error => {
+                            this.IsLogin = false;
+                        });
+                }
+                catch (err) {
+                    this.IsLogin = false;
+                }
+            },//----
+        },
+    };
+
+    VueObj = Vue.createApp(vueDiv).mount("#vueDivId");
+</script>
